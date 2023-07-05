@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from datasets.deepodo_dataset import DeepOdoDataset
-from models.deepodo_model import DeepOdoModel
+from graphs.models.deepodo_model import DeepOdoModel
 
 # Get cpu, gpu or mps device for training.
 device = (
@@ -24,7 +24,7 @@ print(f"Using {device} device")
 def train(dataloader, model, loss_fn1, optimizer1, t1, epoch, time1, min_loss1, writer1):
     size = len(dataloader.dataset)
     model.train()
-
+    optimizer1.zero_grad()
     train_min_loss = min_loss1
 
     for batch, (sensor_data, ground_truth) in enumerate(dataloader):
@@ -37,12 +37,16 @@ def train(dataloader, model, loss_fn1, optimizer1, t1, epoch, time1, min_loss1, 
         loss = loss_fn1(pred, output_float)
 
         # Backpropagation
-        if loss < 1.8:
-            loss.backward()
-            optimizer1.step()
-            optimizer1.zero_grad()
+        # if loss < 1.8:
+        #     loss.backward()
+        #     optimizer1.step()
+        #     optimizer1.zero_grad()
 
-        writer.add_scalar("Loss/train", loss, t1)
+        loss.backward()
+        optimizer1.step()
+        optimizer1.zero_grad()
+
+        writer1.add_scalar("Loss/train", loss, t1)
         loss, current = loss.item(), (batch + 1) * len(sensor_data)
 
         is_save_model = False
@@ -54,7 +58,7 @@ def train(dataloader, model, loss_fn1, optimizer1, t1, epoch, time1, min_loss1, 
                 train_min_loss = loss
                 is_save_model = True
 
-        if t1 % 1000 == 0:
+        if t1 % 100 == 0:
             is_save_model = True
 
         if is_save_model:
@@ -119,15 +123,15 @@ if __name__ == '__main__':
     file_path = os.path.join(os.path.abspath('.'), 'experiments', 'checkpoints', 'model_deepodo_wang.p')
     min_loss = -1
     if os.path.isfile(file_path):
-        min_loss = 1.275825
+        min_loss = 0.000393
         deepodo_model.load_state_dict(torch.load(file_path))
 
     loss_fn = nn.MSELoss(reduction="mean")
 
-    learn_rate = 0.0001
+    learn_rate = 0.000001
     optimizer = torch.optim.Adam(deepodo_model.parameters(), lr=learn_rate)
 
-    epochs = 10000
+    epochs = 500
     file_name_train_head_time = time.strftime("%Y%m%d_%H%M%S", time.localtime(time.time()))
 
     writer = SummaryWriter()

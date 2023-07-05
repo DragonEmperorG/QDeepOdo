@@ -31,8 +31,9 @@ class DeepOdoDataset(Dataset):
         _GROUND_TRUTH_VELOCITY_Y
     ]
 
-    def __init__(self, file_path, seq_len=60):
+    def __init__(self, file_path, train=True, seq_len=60):
         self.seq_len = seq_len
+        self.is_train = train
         self.raw_data_panda = pd.read_csv(file_path, header=None, names=DeepOdoDataset._DEEP_ODO_TRAIN_DATA_NAMES_LIST)
         self.raw_data_numpy = self.raw_data_panda.to_numpy()
         self.raw_data_length = len(self.raw_data_numpy)
@@ -47,21 +48,34 @@ class DeepOdoDataset(Dataset):
             self.raw_50Hz_data_tail_time,
             self.raw_50Hz_data_linspace_num
         )
+
         self.raw_50Hz_data = self.resample_train_data(self.raw_data_numpy, self.raw_50Hz_data_time)
 
-        self.raw_50Hz_phone_sensor_data = self.raw_50Hz_data[1:self.raw_50Hz_data_linspace_num, 0:7]
-        self.phone_sensor_data_sequence = self.raw_50Hz_phone_sensor_data.reshape((self.raw_50Hz_data_duration, 50, 7))
+        self.phone_sensor_data = self.raw_50Hz_data[1:self.raw_50Hz_data_linspace_num, 0:7]
+        self.phone_sensor_data_mean = np.mean(self.phone_sensor_data, axis=0)
+        self.phone_sensor_data_std = np.std(self.phone_sensor_data, axis=0)
+
+        self.phone_sensor_data_zero_centered = self.phone_sensor_data - self.phone_sensor_data_mean
+        self.phone_sensor_data_standard = self.phone_sensor_data_zero_centered / self.phone_sensor_data_std
+
+        self.phone_sensor_data_sequence = self.phone_sensor_data_standard.reshape((self.raw_50Hz_data_duration, 50, 7))
 
         self.ground_truth_data_index = np.arange(50, self.raw_50Hz_data_linspace_num, 50)
         self.ground_truth_data_sequence = self.raw_50Hz_data[self.ground_truth_data_index, 7]\
             .reshape((self.ground_truth_data_index.shape[0], 1))
 
     def __len__(self):
-        return self.raw_50Hz_data_duration - self.seq_len + 1
+        if self.is_train:
+            return self.raw_50Hz_data_duration - self.seq_len + 1
+        else:
+            return 1
 
     def __getitem__(self, idx):
-        sequence = np.arange(idx, idx + self.seq_len)
-        return self.phone_sensor_data_sequence[sequence, :, :], self.ground_truth_data_sequence[sequence, :]
+        if self.is_train:
+            sequence = np.arange(idx, idx + self.seq_len)
+            return self.phone_sensor_data_sequence[sequence, :, :], self.ground_truth_data_sequence[sequence, :]
+        else:
+            return self.phone_sensor_data_sequence, self.ground_truth_data_sequence
 
     def resample_train_data(self, data, output_time):
         interp1d_time = data[:, 0]
