@@ -3,11 +3,11 @@ from torch import nn
 from torch.autograd import Variable
 
 
-class DeepOdoModel(nn.Module):
+class DeepOdo6AxisImuModel(nn.Module):
     def __init__(self):
-        super(DeepOdoModel, self).__init__()
+        super(DeepOdo6AxisImuModel, self).__init__()
 
-        self.conv1d1 = nn.Conv1d(7, 128, 11)
+        self.conv1d1 = nn.Conv1d(6, 128, 11)
         self.relu1 = nn.ReLU()
         self.maxpool1d1 = nn.MaxPool1d(2)
         self.conv1d2 = nn.Conv1d(128, 256, 9)
@@ -20,12 +20,12 @@ class DeepOdoModel(nn.Module):
         self.gru_cell = nn.GRUCell(512, 512)
         self.fc3 = nn.Linear(512, 1)
 
-    def forward(self, phone_data):
+    def forward(self, device,  phone_data):
         sequence_output = []
         input_sequence_single = phone_data
         input_sequence_single_length = input_sequence_single.shape[0]
         # hx = Variable(torch.randn(512))
-        hx = torch.randn(512)
+        hx = torch.randn(512).to(device)
         for j in range(input_sequence_single_length):
             input_atom = input_sequence_single[j, :, :]
             input_atom_conv1d = input_atom.permute(1, 0)
