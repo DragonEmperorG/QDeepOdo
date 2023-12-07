@@ -131,7 +131,13 @@ def load_default_sdc2023_datasets_args():
         ['TRAIN', '2023-09-06-18-04-us-ca', 'pixel5'],
         ['TRAIN', '2023-09-07-18-59-us-ca', 'pixel5'],
     ]
-    # sdc2023_datasets_args.device = "cpu"
+
+    # sdc2023_datasets_args.datasets_train_test_config = [
+    #     ['TRAIN', '2020-08-04-00-20-us-ca-sb-mtv-101', 'pixel5'],
+    #     ['TEST', '2020-08-13-21-42-us-ca-mtv-sf-280', 'pixel5'],
+    # ]
+
+    sdc2023_datasets_args.device = "cpu"
     sdc2023_datasets_args.train_filter = True
     sdc2023_datasets_args.epochs = 1000
     sdc2023_datasets_args.learning_rate = 0.0001

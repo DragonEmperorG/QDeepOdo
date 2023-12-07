@@ -53,19 +53,23 @@ def main(args):
 
         file_name_train_head_time = time.strftime("%Y%m%d_%H%M%S", time.localtime(time.time()))
 
+        layout = {
+            "SDC2023": {
+                "loss": ["Multiline", ["Loss/train", "Loss/test"]],
+            },
+        }
         writer = SummaryWriter()
+        writer.add_custom_scalars(layout)
 
         min_loss = -1
         for t in range(args.epochs):
             logger_main.info(f"Epoch {t + 1}/{args.epochs}")
-            # min_loss = train(
-            #     train_dataloader, deepodo_model, loss_fn, optimizer,
-            #     t, args.epochs, file_name_train_head_time, min_loss, writer, args.device)
+            min_loss = train(
+                train_dataloader, deepodo_model, loss_fn, optimizer,
+                t, args.epochs, file_name_train_head_time, min_loss, writer, args.device)
 
-            if t % 10 == 0:
+            if t % 1 == 0:
                 test_loss(test_dataloader, deepodo_model, loss_fn, args.device, writer, t)
-
-        writer.flush()
 
     if args.test_filter:
         file_path = os.path.join(os.path.abspath('.'), 'experiments', 'checkpoints', args.model_file_name)
