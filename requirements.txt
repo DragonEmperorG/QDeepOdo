@@ -1,0 +1,7 @@
+loguru
+matplotlib
+numpy
+pandas
+scipy
+torch==2.1.1+cu121
+tensorboard
