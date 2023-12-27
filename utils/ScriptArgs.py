@@ -21,9 +21,8 @@ class ScriptArgs:
     epochs = 1000
     learning_rate = 0.00001
     batch_size = 20
-    seq_len = 3000
-    max_loss = 500
-    max_grad_norm = 500
+    window_time_duration = 60
+    window_time_hop = 10
     continue_training = False
     model_file_name = "filter_schedule_20231119_142127_epoch_771_1000_loss_72058.p"
 
@@ -56,8 +55,8 @@ def load_terminal_args():
 
 def load_default_args():
     # default_args = load_default_chongqin_datasets_args()
-    default_args = load_default_sdc2023_datasets_args()
-    # default_args = load_test_sdc2023_datasets_args()
+    # default_args = load_default_sdc2023_datasets_args()
+    default_args = load_test_sdc2023_datasets_args()
     return default_args
 
 
@@ -193,5 +192,5 @@ def load_test_sdc2023_datasets_args():
     ]
     sdc2023_datasets_args.device = "cpu"
     sdc2023_datasets_args.test_filter = True
-    sdc2023_datasets_args.model_file_name = "model_deepodo_wang_train_schedule_20231124_193025_epoch_448_1000_batch_31_31_Loss_3096443.p"
+    sdc2023_datasets_args.model_file_name = "model_deepodo_wang_train_schedule_20231207_155106_epoch_634_2000_batch_31_31_Loss_231970.p"
     return sdc2023_datasets_args

@@ -226,7 +226,7 @@ def load_sdc2023_deepodo_normalize_data(data_path, normalize_factors, sample_rat
     ground_truth_data_sequence = resampled_data[ground_truth_data_index, 0] \
         .reshape((ground_truth_data_index.shape[0], 1))
 
-    dataset_trace = DatasetTrace(data_path, phone_sensor_data_sequence, ground_truth_data_sequence)
+    dataset_trace = DatasetTrace(data_path, 0, ground_truth_data_index.shape[0]-1, phone_sensor_data_sequence, ground_truth_data_sequence)
 
     return dataset_trace
 

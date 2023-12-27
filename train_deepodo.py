@@ -14,8 +14,12 @@ def train(dataloader, model, loss_fn1, optimizer1, t1, epoch, time1, min_loss1, 
     optimizer1.zero_grad()
     train_min_loss = min_loss1
 
+    epoch_loss_num = 0
+    epoch_loss_sum = 0
+    batch_data_len = len(dataloader)
     for batch, batch_data in enumerate(dataloader):
-        batch_loss = 0
+        batch_loss_num = 0
+        batch_loss_sum = 0
         batch_counter = 0
         for dataset_trace in batch_data:
             sensor_data_numpy = dataset_trace.phone_sensor_data_sequence
@@ -36,32 +40,37 @@ def train(dataloader, model, loss_fn1, optimizer1, t1, epoch, time1, min_loss1, 
 
             # Compute prediction error
             pred = model(device, random_sample_input_float)
-            loss = loss_fn1(pred, random_sample_output_float)
-            logger_train.info(f"trace loss: {loss:>7f}  [{(batch_counter+1):>2d}/{len(batch_data):>2d}]")
+            sequence_loss = loss_fn1(pred, random_sample_output_float)
 
-            batch_loss += loss
-            batch_counter = batch_counter + 1
+            sequence_len = len(ground_truth_numpy)
+            batch_loss_num = batch_loss_num + sequence_len
+            batch_loss_sum = batch_loss_sum + sequence_loss * sequence_len
 
         # Backpropagation
-        batch_loss = batch_loss / len(batch_data)
-        batch_loss.backward()
+        epoch_loss_num = epoch_loss_num + batch_loss_num
+        epoch_loss_sum = epoch_loss_sum + batch_loss_sum
+
+        batch_loss_avg = batch_loss_sum / batch_loss_num
+        batch_loss_avg.backward()
         optimizer1.step()
         optimizer1.zero_grad()
 
-        writer1.add_scalar("Loss/train", batch_loss, t1)
-        batch_loss, current = batch_loss.item(), (batch + 1) * len(batch_data)
+        logger_train.info(f"batch loss: {batch_loss_avg:>7f}  [{(batch + 1):>2d}/{batch_data_len:>2d}]")
+
+        writer1.add_scalar("Loss/train", batch_loss_avg, t1)
+        batch_loss_sum, current = batch_loss_sum.item(), (batch + 1) * batch_data_len
 
         is_save_model = False
         if train_min_loss == -1:
-            train_min_loss = batch_loss
+            train_min_loss = batch_loss_sum
             is_save_model = True
         else:
-            if batch_loss < train_min_loss:
-                train_min_loss = batch_loss
+            if batch_loss_sum < train_min_loss:
+                train_min_loss = batch_loss_sum
                 is_save_model = True
 
         if is_save_model:
-            file_name_loss = math.floor(batch_loss * 1e6)
+            file_name_loss = math.floor(batch_loss_sum * 1e6)
             file_name = "model_deepodo_wang_train_schedule_{}_epoch_{}_{}_batch_{}_{}_Loss_{}.p".format(time1,
                                                                                                         t1, epoch, current,
                                                                                                         size,
@@ -71,6 +80,7 @@ def train(dataloader, model, loss_fn1, optimizer1, t1, epoch, time1, min_loss1, 
             file_path2 = os.path.join(os.path.abspath('.'), 'experiments', 'checkpoints', 'model_deepodo_wang.p')
             torch.save(model.state_dict(), file_path2)
 
-        logger_train.info(f"batch loss: {batch_loss:>7f}  [{current:>2d}/{size:>2d}]")
+    epoch_loss_avg = epoch_loss_sum / epoch_loss_num
+    logger_train.info(f"epoch loss: {epoch_loss_avg:>7f}")
 
     return train_min_loss

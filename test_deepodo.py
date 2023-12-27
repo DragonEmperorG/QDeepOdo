@@ -55,9 +55,10 @@ def test(dataloader, model, loss_fn1, device):
 
 def test_loss(dataloader, model, loss_fn1, device, writer1, t1):
     logger_test = get_logger()
-    num_batches = len(dataloader)
     model.eval()
-    test_loss, correct = 0, 0
+
+    test_loss_num = 0
+    test_loss_sum = 0
     with torch.no_grad():
         for batch, batch_data in enumerate(dataloader):
             for dataset_trace in batch_data:
@@ -68,9 +69,13 @@ def test_loss(dataloader, model, loss_fn1, device, writer1, t1):
                 input_float = X.float()
                 output_float = y.float()
                 pred = model(device, input_float)
-                test_loss += loss_fn1(pred, output_float).item()
+                sequence_loss = loss_fn1(pred, output_float)
 
-    test_loss /= num_batches
+                sequence_len = len(ground_truth_numpy)
+                test_loss_num = test_loss_num + sequence_len
+                test_loss_sum = test_loss_sum + sequence_loss.item() * sequence_len
 
-    writer1.add_scalar("Loss/test", test_loss, t1)
-    logger_test.info(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    test_loss_avg = test_loss_sum / test_loss_num
+
+    writer1.add_scalar("Loss/test", test_loss_avg, t1)
+    logger_test.info(f"Test loss: {test_loss_avg:>8f}")

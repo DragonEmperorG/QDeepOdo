@@ -31,9 +31,9 @@ def main(args):
     # deepodo_model = DeepOdoModel()
 
     train_list, test_list, normalize_factors = load_sdc2023_dataset(args.datasets_base_folder_path, args.datasets_train_test_config)
-    train_dataset = DeepOdoSdcDataset(train_list, normalize_factors)
-    test_dataset = DeepOdoSdcDataset(test_list, normalize_factors)
-    train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, collate_fn=collate_fn)
+    train_dataset = DeepOdoSdcDataset(train_list, normalize_factors, args.window_time_duration, args.window_time_hop)
+    test_dataset = DeepOdoSdcDataset(test_list, normalize_factors, args.window_time_duration, args.window_time_hop)
+    train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, collate_fn=collate_fn)
     test_dataloader = DataLoader(test_dataset, collate_fn=collate_fn)
     deepodo_model = DeepOdo6AxisImuModel()
 
