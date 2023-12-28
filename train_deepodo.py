@@ -70,8 +70,8 @@ def train(dataloader, model, loss_fn1, optimizer1, t1, epoch, time1, min_loss1, 
                 is_save_model = True
 
         if is_save_model:
-            file_name_loss = math.floor(batch_loss_sum * 1e6)
-            file_name = "model_deepodo_wang_train_schedule_{}_epoch_{}_{}_batch_{}_{}_Loss_{}.p".format(time1,
+            file_name_loss = math.floor(batch_loss_avg * 1e6)
+            file_name = "model_deepodo_wang_train_schedule_{}_epoch_{}_{}_batch_{}_{}_loss_{}.p".format(time1,
                                                                                                         t1, epoch, current,
                                                                                                         size,
                                                                                                         file_name_loss)
